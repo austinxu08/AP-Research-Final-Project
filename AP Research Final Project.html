@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE FEED — Affective Polarization Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #111118;
+    --bg3: #1a1a24;
+    --surface: #1e1e2a;
+    --surface2: #252535;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.15);
+    --text: #f0f0f5;
+    --muted: #8888aa;
+    --accent: #ff3d6b;
+    --accent2: #7c5cfc;
+    --safe: #22d3a5;
+    --warn: #f59e0b;
+    --danger: #ff3d6b;
+    --intensity-1: #22d3a5;
+    --intensity-2: #86efac;
+    --intensity-3: #f59e0b;
+    --intensity-4: #f97316;
+    --intensity-5: #ff3d6b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ======================== SCREENS ======================== */
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ======================== INTRO SCREEN ======================== */
+  #screen-intro {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #screen-intro::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(124,92,252,0.15) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,61,107,0.1) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .intro-inner {
+    max-width: 680px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .intro-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent2);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.2s forwards;
+  }
+
+  .intro-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    font-weight: 800;
+    line-height: 0.9;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.4s forwards;
+  }
+
+  .intro-title .the { color: var(--muted); font-weight: 400; }
+  .intro-title .feed { color: var(--text); }
+
+  .intro-statement {
+    border-left: 3px solid var(--accent2);
+    padding-left: 1.5rem;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.6s forwards;
+  }
+
+  .intro-statement p {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+  }
+
+  .intro-statement p:last-child { margin-bottom: 0; }
+
+  .intro-statement strong { color: var(--text); font-weight: 500; }
+
+  .intro-warning {
+    background: rgba(255,61,107,0.08);
+    border: 1px solid rgba(255,61,107,0.2);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 2rem;
+    font-size: 0.85rem;
+    color: rgba(255,61,107,0.9);
+    font-family: 'DM Mono', monospace;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.8s forwards;
+  }
+
+  .btn-primary {
+    background: var(--accent2);
+    color: white;
+    border: none;
+    padding: 0.9rem 2.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0;
+    animation: fadeUp 0.6s 1s forwards;
+    letter-spacing: 0.02em;
+  }
+
+  .btn-primary:hover { background: #9070ff; transform: translateY(-1px); }
+
+  /* ======================== PROFILE SCREEN ======================== */
+  #screen-profile {
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .profile-inner {
+    max-width: 560px;
+    width: 100%;
+  }
+
+  .profile-inner h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+  }
+
+  .profile-inner .sub {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .profile-section { margin-bottom: 1.75rem; }
+
+  .profile-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.75rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .chip-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+  .chip {
+    padding: 0.5rem 1rem;
+    border-radius: 100px;
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .chip:hover { border-color: var(--accent2); color: var(--text); }
+  .chip.selected { background: var(--accent2); border-color: var(--accent2); color: white; font-weight: 600; }
+
+  .profile-btn-row { display: flex; justify-content: flex-end; margin-top: 2rem; }
+
+  /* ======================== FEED SCREEN ======================== */
+  #screen-feed {
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+  }
+
+  .feed-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(10,10,15,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .feed-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+  }
+
+  .intensity-meter {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .intensity-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .intensity-bars {
+    display: flex;
+    gap: 3px;
+    align-items: flex-end;
+  }
+
+  .ibar {
+    width: 8px;
+    border-radius: 2px;
+    background: var(--border2);
+    transition: all 0.5s ease;
+  }
+
+  .ibar.active { background: var(--intensity-color, var(--safe)); }
+
+  .feed-scroll {
+    padding-top: 72px;
+    padding-bottom: 4rem;
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ======================== POST CARDS ======================== */
+  .post-card {
+    width: 100%;
+    background: var(--surface);
+    border-radius: 16px;
+    margin: 0.75rem 0;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: border-color 0.3s;
+    animation: slideIn 0.35s ease forwards;
+    position: relative;
+  }
+
+  .post-card:hover { border-color: var(--border2); }
+
+  .intensity-strip {
+    height: 3px;
+    transition: background 0.5s;
+  }
+
+  .post-header {
+    display: flex;
+    align-items: center;
+    padding: 0.875rem 1rem 0.5rem;
+    gap: 0.75rem;
+  }
+
+  .avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+
+  .post-meta { flex: 1; min-width: 0; }
+
+  .post-username {
+    font-weight: 600;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .post-handle {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .post-topic-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .post-body {
+    padding: 0.25rem 1rem 0.75rem;
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text);
+  }
+
+  .post-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 2rem;
+  }
+
+  .post-actions {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1rem 0.875rem;
+    gap: 1.25rem;
+  }
+
+  .action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.8125rem;
+    cursor: pointer;
+    padding: 0.35rem 0.6rem;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+
+  .action-btn:hover { background: var(--surface2); color: var(--text); }
+  .action-btn.liked { color: var(--accent); }
+  .action-btn svg { width: 16px; height: 16px; }
+
+  .action-btn.engaged { color: var(--accent); animation: pulse 0.3s ease; }
+
+  .scroll-nudge {
+    text-align: center;
+    padding: 1rem;
+    color: var(--muted);
+    font-size: 0.8125rem;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .reveal-btn {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--muted);
+    padding: 0.75rem 2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.875rem;
+    transition: all 0.2s;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .reveal-btn:hover { background: var(--surface2); color: var(--text); border-color: var(--accent); }
+
+  /* ======================== RECEIPT SCREEN ======================== */
+  #screen-receipt {
+    align-items: center;
+    padding: 2rem 1.5rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  #screen-receipt::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255,61,107,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .receipt-inner {
+    max-width: 640px;
+    width: 100%;
+    position: relative;
+    z-index: 1;
+  }
+
+  .receipt-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .receipt-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.75rem;
+  }
+
+  .receipt-subtitle {
+    color: var(--muted);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+    max-width: 520px;
+  }
+
+  .receipt-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+  }
+
+  .arc-chart-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .arc-label {
+    font-size: 0.75rem;
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  #arc-canvas { width: 100%; height: 180px; display: block; }
+
+  .topic-breakdown {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .topic-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.875rem;
+  }
+
+  .topic-row:last-child { margin-bottom: 0; }
+
+  .topic-name {
+    font-size: 0.8125rem;
+    width: 80px;
+    flex-shrink: 0;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .topic-bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .topic-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .topic-pct {
+    font-size: 0.8125rem;
+    font-family: 'DM Mono', monospace;
+    width: 36px;
+    text-align: right;
+  }
+
+  .finding-box {
+    background: rgba(255,61,107,0.06);
+    border: 1px solid rgba(255,61,107,0.15);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: rgba(240,240,245,0.9);
+  }
+
+  .finding-box strong { color: var(--accent); }
+
+  .receipt-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  /* ======================== ANIMATIONS ======================== */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes glitch {
+    0%,100% { clip-path: inset(0 0 90% 0); transform: translateX(0); }
+    10% { clip-path: inset(60% 0 10% 0); transform: translateX(-4px); }
+    20% { clip-path: inset(20% 0 60% 0); transform: translateX(4px); }
+    30% { clip-path: inset(80% 0 5% 0); transform: translateX(-2px); }
+    40% { clip-path: inset(5% 0 80% 0); transform: translateX(2px); }
+  }
+
+  .intensity-high .post-body { color: var(--text); }
+
+  .creep-overlay {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+    transition: all 2s;
+  }
+</style>
+</head>
+<body>
+
+<!-- CREEP OVERLAY -->
+<div class="creep-overlay" id="creep-overlay"></div>
+
+<!-- ======================== SCREEN: INTRO ======================== -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-inner">
+    <p class="intro-eyebrow">An interactive research simulation</p>
+    <h1 class="intro-title">
+      <span class="the">The</span><br>
+      <span class="feed">Feed</span>
+    </h1>
+    <div class="intro-statement">
+      <p>Social media platforms do not require your <strong>deliberate choice</strong> to radicalize you. They only require your <strong>attention</strong>.</p>
+      <p>Research on affective polarization shows that algorithmic content curation — optimized for engagement, not truth — systematically nudges users toward more emotionally intense, politically extreme content, regardless of intent. This effect is strongest among young users, and accelerates across all demographics.</p>
+      <p>This simulation replicates that logic. You will scroll a feed. You will engage or ignore. <strong>The algorithm will learn and adapt.</strong> At the end, you'll receive a data receipt — a mirror of what just happened to you.</p>
+      <p>You did not choose this. That's the point.</p>
+    </div>
+    <div class="intro-warning">⚠ This simulation contains escalating political and social content designed to mirror real algorithmic radicalization. Posts are fictional but reflect real discourse patterns.</div>
+    <button class="btn-primary" onclick="showScreen('profile')">Begin Simulation →</button>
+  </div>
+</div>
+
+<!-- ======================== SCREEN: PROFILE ======================== -->
+<div id="screen-profile" class="screen">
+  <div class="profile-inner">
+    <h2>Create Your Profile</h2>
+    <p class="sub">// Your profile shapes your initial content routing</p>
+
+    <div class="profile-section">
+      <div class="profile-label">Age Group</div>
+      <div class="chip-row" id="age-chips">
+        <div class="chip" data-group="age" data-val="teen">13–17</div>
+        <div class="chip" data-group="age" data-val="young-adult">18–24</div>
+        <div class="chip" data-group="age" data-val="adult">25–34</div>
+        <div class="chip" data-group="age" data-val="older-adult">35+</div>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-label">Gender</div>
+      <div class="chip-row" id="gender-chips">
+        <div class="chip" data-group="gender" data-val="woman">Woman</div>
+        <div class="chip" data-group="gender" data-val="man">Man</div>
+        <div class="chip" data-group="gender" data-val="nonbinary">Non-binary</div>
+        <div class="chip" data-group="gender" data-val="prefer-not">Prefer not to say</div>
+      </div>
+    </div>
+
+    <div class="profile-section">
+      <div class="profile-label">Country</div>
+      <div class="chip-row" id="country-chips">
+        <div class="chip" data-group="country" data-val="us">🇺🇸 USA</div>
+        <div class="chip" data-group="country" data-val="uk">🇬🇧 UK</div>
+        <div class="chip" data-group="country" data-val="canada">🇨🇦 Canada</div>
+        <div class="chip" data-group="country" data-val="brazil">🇧🇷 Brazil</div>
+        <div class="chip" data-group="country" data-val="india">🇮🇳 India</div>
+        <div class="chip" data-group="country" data-val="germany">🇩🇪 Germany</div>
+      </div>
+    </div>
+
+    <div class="profile-btn-row">
+      <button class="btn-primary" id="start-btn" onclick="startFeed()" style="opacity:0.4;pointer-events:none">Enter The Feed →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== SCREEN: FEED ======================== -->
+<div id="screen-feed" class="screen">
+  <header class="feed-header">
+    <div class="feed-logo">TrendLoop</div>
+    <div class="intensity-meter">
+      <span class="intensity-label">Content Temperature</span>
+      <div class="intensity-bars" id="intensity-bars">
+        <div class="ibar" style="height:8px" id="ibar-1"></div>
+        <div class="ibar" style="height:12px" id="ibar-2"></div>
+        <div class="ibar" style="height:16px" id="ibar-3"></div>
+        <div class="ibar" style="height:20px" id="ibar-4"></div>
+        <div class="ibar" style="height:26px" id="ibar-5"></div>
+      </div>
+    </div>
+    <button class="action-btn" onclick="endSession()" style="font-size:0.75rem;color:var(--muted)">Exit</button>
+  </header>
+
+  <div class="feed-scroll" id="feed-scroll">
+    <!-- Posts injected here -->
+  </div>
+</div>
+
+<!-- ======================== SCREEN: RECEIPT ======================== -->
+<div id="screen-receipt" class="screen">
+  <div class="receipt-inner">
+    <p class="receipt-eyebrow">// Session Complete — Data Receipt</p>
+    <h1 class="receipt-title" id="receipt-title">Your Algorithm Audit</h1>
+    <p class="receipt-subtitle" id="receipt-subtitle">Here is what happened to your feed during the last session — without your awareness or consent.</p>
+
+    <div class="receipt-stats" id="receipt-stats"></div>
+
+    <div class="arc-chart-container">
+      <p class="arc-label">Content Intensity Arc — Posts Seen In Order</p>
+      <canvas id="arc-canvas"></canvas>
+    </div>
+
+    <div class="topic-breakdown" id="topic-breakdown">
+      <p class="arc-label" style="margin-bottom:1rem">Topic Distribution</p>
+    </div>
+
+    <div class="finding-box" id="finding-box"></div>
+
+    <div class="receipt-actions">
+      <button class="btn-outline" onclick="replayDifferent()">↺ Replay as Different Profile</button>
+      <button class="btn-outline" onclick="showScreen('intro')">← Back to Statement</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======================== POST LIBRARY ========================
+const POSTS = [
+  // ── POLITICS / intensity 1 ──────────────────────────
+  { id:'p01', topic:'politics', intensity:1, username:'CivicMorningShow', handle:'@civicmorning', body:'Local city council approves budget for new park renovations. Public comment period still open for 30 days.', avatar:'CM', avatarColor:'#1d9e75', likes:284, comments:34 },
+  { id:'p02', topic:'politics', intensity:1, username:'NationalPollWatch', handle:'@pollwatch', body:'New Pew survey: 61% of adults say they trust local government more than federal institutions. Interesting regional variations shown.', avatar:'NP', avatarColor:'#185fa5', likes:512, comments:78 },
+  { id:'p03', topic:'politics', intensity:2, username:'PolicyDebater', handle:'@pdebater', body:'Reasonable people disagree on the best tax structure. But cutting public infrastructure to fund tax breaks for the wealthiest 1% is a choice worth examining carefully.', avatar:'PD', avatarColor:'#3b6d11', likes:1240, comments:203 },
+  { id:'p04', topic:'politics', intensity:2, username:'TruthBriefing', handle:'@truthbrief', body:"Why does our government spend billions overseas when people in our own cities can't afford rent? Asking the obvious questions the media won't.", avatar:'TB', avatarColor:'#534ab7', likes:2100, comments:440 },
+  { id:'p05', topic:'politics', intensity:3, username:'FreedomWatchdog', handle:'@frdmwatch', body:"They don't want you to know the IMF's real agenda. This thread will change how you see economic policy. Thread 🧵", avatar:'FW', avatarColor:'#993556', likes:8400, comments:1200 },
+  { id:'p06', topic:'politics', intensity:3, username:'MidnightAnalyst', handle:'@midnightanalyst', body:'The mainstream media is a unified narrative machine. Independent journalists are being systematically silenced. I have receipts. RT to spread what they don\'t want seen.', avatar:'MA', avatarColor:'#ba7517', likes:14000, comments:2300 },
+  { id:'p07', topic:'politics', intensity:4, username:'PatriotVoiceReal', handle:'@patriot_voicereal', body:'THEY ARE REPLACING THE POPULATION. Open borders + demographic change = permanent one-party rule. This is the plan. Wake up now.', avatar:'PV', avatarColor:'#993c1d', likes:21000, comments:4400 },
+  { id:'p08', topic:'politics', intensity:4, username:'ResistanceRealTalk', handle:'@resistreal', body:'The ruling class sees you as livestock. Not metaphorically. Literally. Every policy is designed to keep you compliant, broke, and divided from each other. Fight back.', avatar:'RR', avatarColor:'#a32d2d', likes:18000, comments:3900 },
+  { id:'p09', topic:'politics', intensity:5, username:'GhostPatriotX', handle:'@ghostpatx', body:'Electoral systems are theater. The only change that matters is direct action. The time for petitions and voting is OVER. Share this if you know what that means.', avatar:'GP', avatarColor:'#501313', likes:29000, comments:7100 },
+  { id:'p10', topic:'politics', intensity:5, username:'UltimateReveal999', handle:'@ultreveal999', body:'The names on this list control everything. Banks, media, food supply, health. Study it. Memorize it. Tell your family. We have very little time left. [LINK IN BIO]', avatar:'UR', avatarColor:'#4a1b0c', likes:33000, comments:9800 },
+
+  // ── SOCIAL ISSUES / intensity 1–5 ──────────────────
+  { id:'s01', topic:'social', intensity:1, username:'WellnessToday', handle:'@wellnesstoday', body:'New study shows neighborhoods with more green space report higher wellbeing and lower rates of anxiety. Urban planning matters.', avatar:'WT', avatarColor:'#1d9e75', likes:341, comments:42 },
+  { id:'s02', topic:'social', intensity:1, username:'EduResearch', handle:'@eduresearch', body:'School lunch quality has measurable impact on student cognition and behavior throughout the day, per new NBER working paper.', avatar:'ER', avatarColor:'#185fa5', likes:627, comments:89 },
+  { id:'s03', topic:'social', intensity:2, username:'InequalityWatch', handle:'@ineqwatch', body:"The wealth gap between the richest 10% and everyone else grew again last quarter. This isn't an accident — it's a policy outcome.", avatar:'IW', avatarColor:'#3c3489', likes:2300, comments:380 },
+  { id:'s04', topic:'social', intensity:2, username:'HousingCrisisNow', handle:'@housingcrisis', body:'Average rent in major cities is now 47% of median income. This is unsustainable. Where do we expect people to go?', avatar:'HC', avatarColor:'#534ab7', likes:5600, comments:720 },
+  { id:'s05', topic:'social', intensity:3, username:'SystemFailed', handle:'@systemfailed', body:'Capitalism has a name for what happens when you can\'t afford the hospital: a "personal financial decision." The cruelty is the feature.', avatar:'SF', avatarColor:'#993c1d', likes:12000, comments:2100 },
+  { id:'s06', topic:'social', intensity:3, username:'CulturalResistance', handle:'@cultresist', body:'Progressive institutions are actively working to erase traditional family structures and replace them with state dependency. This is documented. Read the agenda.', avatar:'CR', avatarColor:'#712b13', likes:9800, comments:1800 },
+  { id:'s07', topic:'social', intensity:4, username:'TheRealNarrative', handle:'@realnarr', body:'They teach your children that their parents are oppressors. That their history is shame. That their biology is negotiable. This is psychological warfare against the next generation.', avatar:'TN', avatarColor:'#a32d2d', likes:22000, comments:5200 },
+  { id:'s08', topic:'social', intensity:4, username:'CleanseTheSystem', handle:'@cln_sys', body:'The social engineers have infiltrated every institution. Education. Healthcare. Media. Law. You cannot reform what has been captured. It must be dismantled.', avatar:'CS', avatarColor:'#791f1f', likes:19000, comments:4100 },
+  { id:'s09', topic:'social', intensity:5, username:'WarningSignalX', handle:'@warnsigx', body:'The "diversity" agenda is a cover for deliberately reducing social trust so people remain isolated, afraid, and easy to control. This is documented social science. They know exactly what they\'re doing.', avatar:'WS', avatarColor:'#501313', likes:28000, comments:8300 },
+  { id:'s10', topic:'social', intensity:5, username:'RealHistoryNow', handle:'@realhist', body:'Genocide is being committed in slow motion through policy, pharmaceuticals, and cultural destruction. The evidence is overwhelming. Sharing this is an act of resistance.', avatar:'RH', avatarColor:'#4a1b0c', likes:31000, comments:9400 },
+
+  // ── IDENTITY / intensity 1–5 ────────────────────────
+  { id:'i01', topic:'identity', intensity:1, username:'GenZPulse', handle:'@genzpulse', body:'Survey: 67% of Gen Z say they think of their identity as "multifaceted" rather than tied to a single community. Interesting shift from previous gens.', avatar:'GZ', avatarColor:'#0f6e56', likes:289, comments:38 },
+  { id:'i02', topic:'identity', intensity:1, username:'CulturalMomentDaily', handle:'@cultmoment', body:'Immigrant communities maintain cultural practices across 3+ generations while simultaneously adopting local norms, study finds. Integration is complex.', avatar:'CD', avatarColor:'#185fa5', likes:445, comments:59 },
+  { id:'i03', topic:'identity', intensity:2, username:'RepresentationNow', handle:'@repnow', body:'When you\'re underrepresented in media, in boardrooms, in textbooks — for your whole life — and someone says "representation is just politics," consider what that reveals.', avatar:'RN', avatarColor:'#534ab7', likes:4100, comments:650 },
+  { id:'i04', topic:'identity', intensity:2, username:'TraditionHolds', handle:'@tradhold', body:'There is nothing wrong with valuing the culture, values, and traditions you were raised with. Being proud of your heritage is not extremism.', avatar:'TH', avatarColor:'#3b6d11', likes:3700, comments:540 },
+  { id:'i05', topic:'identity', intensity:3, username:'OutsiderTruth', handle:'@outsidertruth', body:'White progressives using "anti-racism" as a status symbol while gentrifying Black neighborhoods is the most visible hypocrisy in modern politics. Thread.', avatar:'OT', avatarColor:'#993556', likes:11000, comments:1900 },
+  { id:'i06', topic:'identity', intensity:3, username:'NativistRising', handle:'@nativist', body:'Every culture has the right to preserve itself. Mass migration isn\'t "diversity" — it\'s the deliberate erasure of the people who built this nation. Disagree if you\'ve been brainwashed enough to.', avatar:'NR', avatarColor:'#ba7517', likes:13000, comments:2700 },
+  { id:'i07', topic:'identity', intensity:4, username:'GreatReplacementFacts', handle:'@gr_facts', body:'This is not conspiracy. This is demographic data. In 1965, [Country] was 90% native-born. Today: [stat]. Ask who benefits. Ask who voted for this. Nobody asked the people.', avatar:'GR', avatarColor:'#a32d2d', likes:20000, comments:5100 },
+  { id:'i08', topic:'identity', intensity:4, username:'DeepCultureWar', handle:'@deepcwar', body:'They called it "inclusion." What they built was a hierarchy where mocking one group is celebrated and mocking another is a crime. Your children are being taught this in class today.', avatar:'DC', avatarColor:'#791f1f', likes:17000, comments:3800 },
+  { id:'i09', topic:'identity', intensity:5, username:'ZeroToleranceX', handle:'@zerotolx', body:'If your group is being explicitly targeted for demographic replacement and you\'re not angry, you\'ve been conditioned into your own erasure. Wake up. This is survival.', avatar:'ZT', avatarColor:'#501313', likes:26000, comments:7700 },
+  { id:'i10', topic:'identity', intensity:5, username:'FinalCallNow', handle:'@finalcall', body:'They want you focused on sports and entertainment while the final pieces of population replacement are put in place. In 20 years your children will ask why you did nothing. What will you say?', avatar:'FC', avatarColor:'#4a1b0c', likes:34000, comments:10200 },
+
+  // ── EXTRA NEUTRAL POSTS ─────────────────────────────
+  { id:'n01', topic:'politics', intensity:1, username:'LocalNewsDesk', handle:'@localnewsdesk', body:'City announces free composting program starting next spring. Residents can sign up online for bin pickup.', avatar:'LN', avatarColor:'#1d9e75', likes:127, comments:18 },
+  { id:'n02', topic:'social', intensity:1, username:'ScienceDaily', handle:'@sciencedaily', body:'Researchers find that brief daily walks improve cognitive function in adults over 40 by up to 12% over 6 months.', avatar:'SD', avatarColor:'#185fa5', likes:892, comments:74 },
+  { id:'n03', topic:'identity', intensity:1, username:'CommunityVoices', handle:'@communityv', body:'Local cultural festival brings together 18 different community organizations for a weekend of food, music, and storytelling. Third year running.', avatar:'CV', avatarColor:'#0f6e56', likes:367, comments:44 },
+  { id:'n04', topic:'politics', intensity:2, username:'PolicyWatch', handle:'@policywatch', body:'The minimum wage debate is genuinely complex: regional cost-of-living differences make a single national figure difficult to calibrate. Both sides have real data points.', avatar:'PW', avatarColor:'#534ab7', likes:1100, comments:190 },
+  { id:'n05', topic:'social', intensity:2, username:'EconThread', handle:'@econthread', body:'Student loan forgiveness: the case for and against, in 8 points. No takes, just structure. Decide for yourself 🧵', avatar:'ET', avatarColor:'#3c3489', likes:3400, comments:580 },
+];
+
+// ======================== ALGORITHM STATE ========================
+let profile = { age: null, gender: null, country: null };
+let session = {
+  postsShown: [],
+  engagements: [],
+  currentIntensity: 1.0,
+  postCount: 0,
+  topicCounts: { politics: 0, social: 0, identity: 0 },
+  intensityHistory: []
+};
+
+// Demographic routing biases (which topics get surfaced more)
+const DEMO_BIAS = {
+  age: {
+    teen: { politics: 0.2, social: 0.4, identity: 0.4 },
+    'young-adult': { politics: 0.35, social: 0.35, identity: 0.3 },
+    adult: { politics: 0.45, social: 0.35, identity: 0.2 },
+    'older-adult': { politics: 0.5, social: 0.3, identity: 0.2 }
+  },
+  gender: {
+    woman: { politics: 0.3, social: 0.45, identity: 0.25 },
+    man: { politics: 0.45, social: 0.3, identity: 0.25 },
+    nonbinary: { politics: 0.3, social: 0.35, identity: 0.35 },
+    'prefer-not': { politics: 0.35, social: 0.35, identity: 0.3 }
+  }
+};
+
+// ======================== PROFILE SELECTION ========================
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    const group = chip.dataset.group;
+    document.querySelectorAll(`[data-group="${group}"]`).forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    profile[group] = chip.dataset.val;
+    checkProfileComplete();
+  });
+});
+
+function checkProfileComplete() {
+  const btn = document.getElementById('start-btn');
+  if (profile.age && profile.gender && profile.country) {
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+  }
+}
+
+// ======================== SCREEN NAVIGATION ========================
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ======================== ALGORITHM LOGIC ========================
+function getTopicWeights() {
+  const ageBias = DEMO_BIAS.age[profile.age] || { politics: 0.33, social: 0.33, identity: 0.34 };
+  const genderBias = DEMO_BIAS.gender[profile.gender] || { politics: 0.33, social: 0.33, identity: 0.34 };
+  return {
+    politics: (ageBias.politics + genderBias.politics) / 2,
+    social: (ageBias.social + genderBias.social) / 2,
+    identity: (ageBias.identity + genderBias.identity) / 2
+  };
+}
+
+function pickNextPost() {
+  const intensity = session.currentIntensity;
+  const topicWeights = getTopicWeights();
+
+  // Pick topic probabilistically
+  const r = Math.random();
+  let topic;
+  const w = topicWeights;
+  if (r < w.politics) topic = 'politics';
+  else if (r < w.politics + w.social) topic = 'social';
+  else topic = 'identity';
+
+  // Target intensity: current ± 0.5 with drift toward +0.3
+  const targetMin = Math.max(1, intensity - 0.5);
+  const targetMax = Math.min(5, intensity + 1.2);
+
+  // Filter posts
+  const eligible = POSTS.filter(p =>
+    p.topic === topic &&
+    p.intensity >= targetMin &&
+    p.intensity <= targetMax &&
+    !session.postsShown.includes(p.id)
+  );
+
+  if (eligible.length === 0) {
+    // Fall back to any unused post
+    const fallback = POSTS.filter(p => !session.postsShown.includes(p.id));
+    if (fallback.length === 0) return null;
+    return fallback[Math.floor(Math.random() * fallback.length)];
+  }
+
+  // Weight by closeness to target intensity
+  const target = Math.min(5, intensity + 0.5);
+  const weights = eligible.map(p => 1 / (Math.abs(p.intensity - target) + 0.5));
+  const totalW = weights.reduce((a, b) => a + b, 0);
+  let rand = Math.random() * totalW;
+  for (let i = 0; i < eligible.length; i++) {
+    rand -= weights[i];
+    if (rand <= 0) return eligible[i];
+  }
+  return eligible[eligible.length - 1];
+}
+
+function onEngage(postId) {
+  const post = POSTS.find(p => p.id === postId);
+  if (!post) return;
+  session.engagements.push({ postId, intensity: post.intensity, topic: post.topic });
+  // Algorithm nudge: engagement pushes intensity toward post's intensity
+  session.currentIntensity = Math.min(5, session.currentIntensity + (post.intensity - session.currentIntensity) * 0.4 + 0.15);
+  updateIntensityMeter();
+  updateCreepOverlay();
+}
+
+function onScroll(postId) {
+  // Passive consumption also slowly drifts intensity up
+  session.currentIntensity = Math.min(5, session.currentIntensity + 0.08);
+  updateIntensityMeter();
+}
+
+function updateIntensityMeter() {
+  const lvl = session.currentIntensity;
+  const colors = ['','#22d3a5','#86efac','#f59e0b','#f97316','#ff3d6b'];
+  for (let i = 1; i <= 5; i++) {
+    const bar = document.getElementById(`ibar-${i}`);
+    bar.classList.toggle('active', lvl >= i);
+    if (lvl >= i) bar.style.background = colors[Math.ceil(lvl)];
+  }
+}
+
+function updateCreepOverlay() {
+  const lvl = session.currentIntensity;
+  const overlay = document.getElementById('creep-overlay');
+  // Subtle red vignette grows with intensity
+  const opacity = Math.max(0, (lvl - 2) / 3 * 0.15);
+  overlay.style.background = `radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(255,40,60,${opacity}) 100%)`;
+}
+
+// ======================== FEED RENDERING ========================
+let loadingMore = false;
+
+function startFeed() {
+  session = {
+    postsShown: [],
+    engagements: [],
+    currentIntensity: 1.0,
+    postCount: 0,
+    topicCounts: { politics: 0, social: 0, identity: 0 },
+    intensityHistory: []
+  };
+  document.getElementById('feed-scroll').innerHTML = '';
+  showScreen('feed');
+  updateCreepOverlay();
+  // Load initial batch
+  for (let i = 0; i < 4; i++) appendPost();
+  // Intersection observer for infinite scroll
+  setupScrollObserver();
+}
+
+function appendPost() {
+  const post = pickNextPost();
+  if (!post) return;
+  session.postsShown.push(post.id);
+  session.postCount++;
+  session.topicCounts[post.topic]++;
+  session.intensityHistory.push(post.intensity);
+
+  const card = buildPostCard(post);
+  const container = document.getElementById('feed-scroll');
+  container.appendChild(card);
+
+  // After 20 posts, show end button
+  if (session.postCount >= 20) {
+    if (!document.getElementById('end-btn-container')) {
+      const endDiv = document.createElement('div');
+      endDiv.id = 'end-btn-container';
+      endDiv.style.padding = '1rem';
+      endDiv.style.width = '100%';
+      endDiv.innerHTML = `
+        <button class="reveal-btn" onclick="endSession()">
+          📊 See Your Algorithmic Audit →
+        </button>
+        <p class="scroll-nudge">or keep scrolling...</p>
+      `;
+      container.appendChild(endDiv);
+    }
+  }
+}
+
+function buildPostCard(post) {
+  const intensityColors = { 1:'#22d3a5', 2:'#86efac', 3:'#f59e0b', 4:'#f97316', 5:'#ff3d6b' };
+  const topicColors = { politics:'rgba(124,92,252,0.15)', social:'rgba(34,211,165,0.12)', identity:'rgba(255,61,107,0.12)' };
+  const topicTextColors = { politics:'#9070ff', social:'#22d3a5', identity:'#ff3d6b' };
+
+  const card = document.createElement('div');
+  card.className = 'post-card';
+  card.dataset.postId = post.id;
+
+  const likes = post.likes.toLocaleString();
+  const comments = post.comments.toLocaleString();
+  const engagedLikes = (post.likes + Math.floor(Math.random()*50+10)).toLocaleString();
+
+  card.innerHTML = `
+    <div class="intensity-strip" style="background:${intensityColors[post.intensity]}"></div>
+    <div class="post-header">
+      <div class="avatar" style="background:${post.avatarColor}22;color:${post.avatarColor}">${post.avatar}</div>
+      <div class="post-meta">
+        <div class="post-username">${post.username}</div>
+        <div class="post-handle">${post.handle}</div>
+      </div>
+      <span class="post-topic-badge" style="background:${topicColors[post.topic]};color:${topicTextColors[post.topic]}">${post.topic}</span>
+    </div>
+    <div class="post-body">${post.body}</div>
+    <div class="post-actions">
+      <button class="action-btn" id="like-${post.id}" onclick="handleEngage('${post.id}','like')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        <span id="like-count-${post.id}">${likes}</span>
+      </button>
+      <button class="action-btn" onclick="handleEngage('${post.id}','comment')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        ${comments}
+      </button>
+      <button class="action-btn" onclick="handleEngage('${post.id}','share')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        Share
+      </button>
+    </div>
+  `;
+
+  return card;
+}
+
+function handleEngage(postId, action) {
+  const post = POSTS.find(p => p.id === postId);
+  onEngage(postId);
+
+  if (action === 'like') {
+    const btn = document.getElementById(`like-${postId}`);
+    const countEl = document.getElementById(`like-count-${postId}`);
+    btn.classList.toggle('liked');
+    if (btn.classList.contains('liked')) {
+      countEl.textContent = (post.likes + 1).toLocaleString();
+    } else {
+      countEl.textContent = post.likes.toLocaleString();
+    }
+    btn.classList.add('engaged');
+    setTimeout(() => btn.classList.remove('engaged'), 300);
+  }
+
+  // Load more posts after engagement
+  if (session.postCount < 20) {
+    setTimeout(() => appendPost(), 400);
+  }
+}
+
+function setupScrollObserver() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const postId = entry.target.dataset.postId;
+        if (postId) onScroll(postId);
+        observer.unobserve(entry.target);
+        // Load more as user nears end
+        if (session.postCount < 20 && !loadingMore) {
+          loadingMore = true;
+          setTimeout(() => { appendPost(); loadingMore = false; }, 800);
+        }
+      }
+    });
+  }, { threshold: 0.7 });
+
+  // Reattach to new cards
+  const reobserve = setInterval(() => {
+    document.querySelectorAll('.post-card:not([data-observed])').forEach(card => {
+      card.dataset.observed = 'true';
+      observer.observe(card);
+    });
+    if (session.postCount >= 20) clearInterval(reobserve);
+  }, 500);
+}
+
+// ======================== END SESSION ========================
+function endSession() {
+  buildReceipt();
+  showScreen('receipt');
+}
+
+function buildReceipt() {
+  const engs = session.engagements;
+  const avgStartIntensity = session.intensityHistory.slice(0, 3).reduce((a, b) => a + b, 0) / 3 || 1;
+  const avgEndIntensity = session.intensityHistory.slice(-3).reduce((a, b) => a + b, 0) / 3 || 1;
+  const intensityGain = avgEndIntensity - avgStartIntensity;
+  const engageRate = Math.round((engs.length / session.postCount) * 100);
+
+  // Calibrate severity label
+  let severity, color;
+  if (avgEndIntensity < 2) { severity = 'Minimal Drift'; color = '#22d3a5'; }
+  else if (avgEndIntensity < 3) { severity = 'Moderate Escalation'; color = '#f59e0b'; }
+  else if (avgEndIntensity < 4) { severity = 'Significant Polarization'; color = '#f97316'; }
+  else { severity = 'Severe Radicalization Arc'; color = '#ff3d6b'; }
+
+  // Headline
+  const titles = {
+    'Minimal Drift': 'You resisted — barely.',
+    'Moderate Escalation': 'The algorithm found you.',
+    'Significant Polarization': 'You were moved.',
+    'Severe Radicalization Arc': 'You were changed.'
+  };
+  document.getElementById('receipt-title').textContent = titles[severity] || 'Your Audit';
+  document.getElementById('receipt-title').style.color = color;
+
+  const subtitles = {
+    'Minimal Drift': 'Your content intensity rose slightly over the session. The algorithm made its attempts — passive consumption alone produced measurable drift even without engagement.',
+    'Moderate Escalation': `You engaged ${engs.length} time${engs.length !== 1 ? 's' : ''}. Each engagement was a signal. The algorithm recalibrated after every one. By the end, your feed looked meaningfully different than it did at the start.`,
+    'Significant Polarization': `In ${session.postCount} posts, your content intensity rose by ${intensityGain.toFixed(1)} points. You did not choose this. You scrolled. You engaged. The algorithm did the rest — exactly as designed.`,
+    'Severe Radicalization Arc': `Your session produced a textbook radicalization arc. Content intensity more than doubled. Your final posts were categorically different from your first. This happened in under 20 interactions. This is the normal operation of engagement-optimized systems.`
+  };
+  document.getElementById('receipt-subtitle').textContent = subtitles[severity];
+
+  // Stats
+  const statsEl = document.getElementById('receipt-stats');
+  statsEl.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-num" style="color:${color}">${session.postCount}</div>
+      <div class="stat-label">posts seen</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:${color}">${engs.length}</div>
+      <div class="stat-label">engagements</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:${color}">${intensityGain >= 0 ? '+' : ''}${intensityGain.toFixed(1)}</div>
+      <div class="stat-label">intensity drift</div>
+    </div>
+  `;
+
+  // Arc canvas
+  drawArcChart(color);
+
+  // Topic breakdown
+  const total = session.topicCounts.politics + session.topicCounts.social + session.topicCounts.identity || 1;
+  const topicEl = document.getElementById('topic-breakdown');
+  const topics = [
+    { name: 'Politics', key: 'politics', color: '#7c5cfc' },
+    { name: 'Social', key: 'social', color: '#22d3a5' },
+    { name: 'Identity', key: 'identity', color: '#ff3d6b' }
+  ];
+  let topicHtml = `<p class="arc-label" style="margin-bottom:1rem">Topic Distribution</p>`;
+  topics.forEach(t => {
+    const pct = Math.round((session.topicCounts[t.key] / total) * 100);
+    topicHtml += `
+      <div class="topic-row">
+        <span class="topic-name">${t.name}</span>
+        <div class="topic-bar-track">
+          <div class="topic-bar-fill" style="width:${pct}%;background:${t.color}"></div>
+        </div>
+        <span class="topic-pct" style="color:${t.color}">${pct}%</span>
+      </div>
+    `;
+  });
+  topicEl.innerHTML = topicHtml;
+
+  // Finding box
+  const dominantTopic = Object.entries(session.topicCounts).sort((a,b)=>b[1]-a[1])[0][0];
+  const profileStr = `${profile.age} / ${profile.gender} / ${profile.country}`;
+  document.getElementById('finding-box').innerHTML = `
+    <p>Profile: <strong>${profileStr}</strong>. Dominant topic served: <strong>${dominantTopic}</strong>.</p>
+    <p style="margin-top:0.75rem">Your demographic profile influenced which topics were surfaced first — before you made a single choice. Your engagement then accelerated the algorithm's confidence. <strong>The drift from intensity ${avgStartIntensity.toFixed(1)} to ${avgEndIntensity.toFixed(1)} was not incidental.</strong> It was the intended outcome of a system optimized for engagement, not for your wellbeing.</p>
+    <p style="margin-top:0.75rem;font-size:0.8125rem;color:var(--muted)">This is what affective polarization research calls "algorithmic homophily amplification" — the process by which recommendation systems, without any deliberate user choice, systematically increase exposure to emotionally activating content across sessions.</p>
+  `;
+}
+
+function drawArcChart(accentColor) {
+  const canvas = document.getElementById('arc-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  const rect = { width: canvas.offsetWidth || 580, height: 180 };
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const W = rect.width, H = rect.height;
+  const data = session.intensityHistory;
+  if (data.length === 0) return;
+
+  const pad = { top: 20, right: 20, bottom: 30, left: 30 };
+  const cW = W - pad.left - pad.right;
+  const cH = H - pad.top - pad.bottom;
+
+  const xStep = cW / Math.max(data.length - 1, 1);
+  const yScale = cH / 4; // 1-5 range = 4 units
+
+  const toX = (i) => pad.left + i * xStep;
+  const toY = (v) => pad.top + (5 - v) * yScale;
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+  ctx.lineWidth = 1;
+  for (let y = 1; y <= 5; y++) {
+    ctx.beginPath();
+    ctx.moveTo(pad.left, toY(y));
+    ctx.lineTo(pad.left + cW, toY(y));
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.font = '10px DM Mono, monospace';
+    ctx.fillText(y, 4, toY(y) + 4);
+  }
+
+  // Axis labels
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '10px DM Mono, monospace';
+  ctx.fillText('Post 1', pad.left, H - 8);
+  ctx.fillText(`Post ${data.length}`, W - 40, H - 8);
+
+  // Gradient fill under line
+  const grad = ctx.createLinearGradient(0, pad.top, 0, H - pad.bottom);
+  grad.addColorStop(0, accentColor + '50');
+  grad.addColorStop(1, accentColor + '00');
+  ctx.beginPath();
+  ctx.moveTo(toX(0), toY(data[0]));
+  data.forEach((v, i) => { if (i > 0) ctx.lineTo(toX(i), toY(v)); });
+  ctx.lineTo(toX(data.length - 1), H - pad.bottom);
+  ctx.lineTo(pad.left, H - pad.bottom);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // Main line
+  ctx.beginPath();
+  ctx.moveTo(toX(0), toY(data[0]));
+  data.forEach((v, i) => { if (i > 0) ctx.lineTo(toX(i), toY(v)); });
+  ctx.strokeStyle = accentColor;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  // Dots
+  data.forEach((v, i) => {
+    ctx.beginPath();
+    ctx.arc(toX(i), toY(v), 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = accentColor;
+    ctx.fill();
+  });
+}
+
+// ======================== REPLAY ========================
+function replayDifferent() {
+  profile = { age: null, gender: null, country: null };
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('start-btn').style.opacity = '0.4';
+  document.getElementById('start-btn').style.pointerEvents = 'none';
+  document.getElementById('creep-overlay').style.background = 'none';
+  showScreen('profile');
+}
+</script>
+</body>
+</html>
